@@ -16,68 +16,41 @@ class ToolsController {
   }
 
   async index(request:Request, response:Response) {
-    const {city, uf, items} = request.query;
-    const parsedItems = String(items).split(',').map(item => Number(item.trim()));
+    const {tags} = request.query;
+    const parsedTags = String(tags).split(',').map(tag => String(tag.trim()));
 
-    const points = await knex('points')
-      .join('point_items', 'points.id', '=', 'point_items.point_id')
-      .whereIn('point_items.item_id', parsedItems)
-      .where('city', String(city))
-      .where('uf', String(uf))
+    const tools = await knex('tools')
+      .whereIn('tools.tags', parsedTags)
       .distinct()
-      .select('points.*');
-
-    const serializedPoints = points.map(point => {
-      return {
-        ...point,
-        image_url: `http://192.168.1.4:4000/uploads/${point.image}`
-      }
-    });
+      .select('tools.*');
     
-    return response.json(serializedPoints);
+    return response.json(tools);
   }
 
   async create(request:Request, response:Response) {
     const {
-      name,
-      email,
-      whatsapp,
-      latitude,
-      longitude,
-      city,
-      uf,
-      items,
+      title,
+      link,
+      description,
+      tags,
     } = request.body
   
     const trx = await knex.transaction();
   
-    const point = {
-      name,
-      email,
-      whatsapp,
-      latitude,
-      longitude,
-      city,
-      uf,
-      image: request.file.filename
+    const tool = {
+      title,
+      link,
+      description,
+      tags
     };
 
-    const insertedIds = await trx('points').insert(point).returning('id');
-    
-    const point_id = insertedIds[0]
-  
-    const pointItems = items.split(',').map((item: String) => Number(item.trim())).map((item_id: number) => {
-      return {
-        item_id,
-        point_id: point_id
-      }
-    })
-  
-    await trx('point_items').insert(pointItems);
+    const insertedIds = await trx('tools').insert(tool).returning('id');
+
+    const tool_id = insertedIds[0];
 
     await trx.commit();
   
-    return response.json({id: point_id, ...point});
+    return response.json({id: tool_id, ...tool});
   }
 
   async destroy(request:Request, response:Response) {
@@ -85,7 +58,7 @@ class ToolsController {
 
     const trx = await knex.transaction();
 
-    const tool = await knex('tools').where('id', id).first();
+    const tool = await trx('tools').where('id', id).del();
 
     if(!tool) {
       return response.status(400).json({message: 'Tool not found'});

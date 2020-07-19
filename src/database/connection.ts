@@ -4,9 +4,9 @@ const connection = knex({
   client: 'pg',
   connection: {
     host : '127.0.0.1',
-    user : 'postgres',
-    password : 'admin.',
-    database : 'nlw'
+    user : 'root',
+    password : '',
+    database : 'bossatools'
   },
   useNullAsDefault: true
 });

@@ -7,32 +7,26 @@ import ToolsController from './controllers/ToolsController';
 const routes = express.Router();
 const upload = multer(multerConfig);
 
-const pointsController = new PointsController();
-const itemsController = new ItemsController();
+const toolsController = new ToolsController();
 
-routes.get('/items', itemsController.index);
+routes.get('/tools', toolsController.index);
 
-routes.get('/tools/', pointsController.index);
+routes.get('/tools/', toolsController.index);
 
-routes.get('/tools/:id', pointsController.show);
+routes.get('/tools/:id', toolsController.show);
 routes.post(
   '/points', 
-  upload.single('image'),
   celebrate({
     body: Joi.object().keys({
-      name: Joi.string().required(),
-      email: Joi.string().email().required(),
-      whatsapp: Joi.number().required(),
-      latitude: Joi.number().required(),
-      longitude: Joi.number().required(),
-      city: Joi.string().required(),
-      uf: Joi.string().required().max(2),
-      items: Joi.string().required()
+      title: Joi.string().required(),
+      description: Joi.string().email().required(),
+      link: Joi.number().required(),
+      tags: Joi.string().required()
     })
   }, {
     abortEarly: false
   }), 
-  pointsController.create
+  toolsController.create
 );
 
 export default routes;
